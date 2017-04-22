@@ -6,9 +6,9 @@ import {
   NativeModules
 } from 'react-native'
 
-var Buffer = require('buffer/').Buffer
+const Buffer = require('buffer/').Buffer
 
-var openShare = NativeModules.ShareIOS
+const openShare = NativeModules.RCTTFShare
 
 export default class Share {
 
