@@ -1,0 +1,21 @@
+{
+  "name": "react-native-tuofeng-share",
+  "version": "0.1.0",
+  "private": true,
+  "description": "实现了微信授权登录、QQ授权登录、微博授权登录，以及微信分享、QQ分享、微博分享、邮件分享和短信分享",
+  "main": "index.js",
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "nativePackage": true,
+  "author": "tuofeng",
+  "keywords": [
+    "share",
+    "TFShare",
+    "react-native"
+  ]
+}
