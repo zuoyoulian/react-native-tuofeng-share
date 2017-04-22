@@ -1,15 +1,15 @@
 //
-//  RCTTFShare.m
-//  RCTTFShare
+//  ShareIOS.m
+//  ShareIOS
 //
-//  Created by 左建军 on 2017/4/22.
-//  Copyright © 2017年 tuofeng. All rights reserved.
+//  Created by 左建军 on 16/7/19.
+//  Copyright © 2016年 lanou. All rights reserved.
 //
 
-#import "RCTTFShare.h"
+#import "ShareIOS.h"
 #import <MessageUI/MessageUI.h>
 
-@interface RCTTFShare () <MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
+@interface ShareIOS () <MFMailComposeViewControllerDelegate, MFMessageComposeViewControllerDelegate> {
     
 }
 
@@ -17,9 +17,10 @@
 
 @end
 
-@implementation RCTTFShare
+@implementation ShareIOS
 
 RCT_EXPORT_MODULE();
+
 
 #pragma mark-短信分享-
 
@@ -81,19 +82,19 @@ RCT_EXPORT_METHOD(shareToMessageWithInfo :(NSDictionary *)info callback:(RCTResp
     [controller dismissViewControllerAnimated:YES completion:nil];
     switch (result) {
         case MessageComposeResultSent:
-        NSLog(@"Result: 发送成功");
-        self.callback(@[@{@"title" : @"短信发送成功", @"res" : @{@"message": @"短信发送成功"}}]);
-        break;
+            NSLog(@"Result: 发送成功");
+            self.callback(@[@{@"title" : @"短信发送成功", @"res" : @{@"message": @"短信发送成功"}}]);
+            break;
         case MessageComposeResultFailed:
-        NSLog(@"Result: 发送失败");
-        self.callback(@[@{@"title" : @"短信发送失败", @"res" : @{@"message": @"短信发送失败"}}]);
-        break;
+            NSLog(@"Result: 发送失败");
+            self.callback(@[@{@"title" : @"短信发送失败", @"res" : @{@"message": @"短信发送失败"}}]);
+            break;
         case MessageComposeResultCancelled:
-        NSLog(@"Result: 取消");
-        self.callback(@[@{@"title" : @"短信发送失败", @"res" : @{@"message": @"用户取消发送"}}]);
-        break;
+            NSLog(@"Result: 取消");
+            self.callback(@[@{@"title" : @"短信发送失败", @"res" : @{@"message": @"用户取消发送"}}]);
+            break;
         default:
-        break;
+            break;
     }
 }
 
@@ -161,24 +162,24 @@ RCT_EXPORT_METHOD(shareToMailWithInfo :(NSDictionary *)info callback:(RCTRespons
     switch (result)
     {
         case MFMailComposeResultCancelled:
-        NSLog(@"Result: 取消");
-        self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"用户取消发送"}}]);
-        break;
+            NSLog(@"Result: 取消");
+            self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"用户取消发送"}}]);
+            break;
         case MFMailComposeResultSaved:
-        NSLog(@"Result: 保存");
-        self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"用户保存邮件"}}]);
-        break;
+            NSLog(@"Result: 保存");
+            self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"用户保存邮件"}}]);
+            break;
         case MFMailComposeResultSent:
-        NSLog(@"Result: 发送成功");
-        self.callback(@[@{@"title" : @"邮箱发送成功", @"res" : @{@"message": @"邮件发送成功"}}]);
-        break;
+            NSLog(@"Result: 发送成功");
+            self.callback(@[@{@"title" : @"邮箱发送成功", @"res" : @{@"message": @"邮件发送成功"}}]);
+            break;
         case MFMailComposeResultFailed:
-        NSLog(@"Result: 发送失败");
-        self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"邮件发送失败"}}]);
-        break;
+            NSLog(@"Result: 发送失败");
+            self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"邮件发送失败"}}]);
+            break;
         default:
-        NSLog(@"Result: 没有发送");
-        break;
+            NSLog(@"Result: 没有发送");
+            break;
     }
 }
 

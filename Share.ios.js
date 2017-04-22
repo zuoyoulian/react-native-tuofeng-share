@@ -8,7 +8,7 @@ import {
 
 var Buffer = require('buffer/').Buffer
 
-var openShare = NativeModules.RCTTFShare
+var openShare = NativeModules.ShareIOS
 
 export default class Share {
 
