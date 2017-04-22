@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		199B3C1A1EAAFAF900EBBD79 /* RCTTFShare.m in Sources */ = {isa = PBXBuildFile; fileRef = 199B3C191EAAFAF900EBBD79 /* RCTTFShare.m */; };
-		199B3C1B1EAAFAF900EBBD79 /* RCTTFShare.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 199B3C181EAAFAF900EBBD79 /* RCTTFShare.h */; };
+		199B3D381EAB277300EBBD79 /* RCTTFShare.m in Sources */ = {isa = PBXBuildFile; fileRef = 199B3D371EAB277300EBBD79 /* RCTTFShare.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -18,7 +17,6 @@
 			dstPath = "include/$(PRODUCT_NAME)";
 			dstSubfolderSpec = 16;
 			files = (
-				199B3C1B1EAAFAF900EBBD79 /* RCTTFShare.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -26,8 +24,8 @@
 
 /* Begin PBXFileReference section */
 		199B3C151EAAFAF900EBBD79 /* libRCTTFShare.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRCTTFShare.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		199B3C181EAAFAF900EBBD79 /* RCTTFShare.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTTFShare.h; path = RCTTFShare/RCTTFShare.h; sourceTree = "<group>"; };
-		199B3C191EAAFAF900EBBD79 /* RCTTFShare.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = RCTTFShare.m; path = RCTTFShare/RCTTFShare.m; sourceTree = "<group>"; };
+		199B3D361EAB277300EBBD79 /* RCTTFShare.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTTFShare.h; sourceTree = "<group>"; };
+		199B3D371EAB277300EBBD79 /* RCTTFShare.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RCTTFShare.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,8 +42,8 @@
 		199B3C0C1EAAFAF900EBBD79 = {
 			isa = PBXGroup;
 			children = (
-				199B3C181EAAFAF900EBBD79 /* RCTTFShare.h */,
-				199B3C191EAAFAF900EBBD79 /* RCTTFShare.m */,
+				199B3D361EAB277300EBBD79 /* RCTTFShare.h */,
+				199B3D371EAB277300EBBD79 /* RCTTFShare.m */,
 				199B3C161EAAFAF900EBBD79 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -115,7 +113,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				199B3C1A1EAAFAF900EBBD79 /* RCTTFShare.m in Sources */,
+				199B3D381EAB277300EBBD79 /* RCTTFShare.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
