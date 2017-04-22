@@ -8,7 +8,7 @@ import {
 
 const Buffer = require('buffer/').Buffer
 
-const openShare = NativeModules.RCTTFShare
+const openShare = NativeModules.TFShare
 
 export default class Share {
 
