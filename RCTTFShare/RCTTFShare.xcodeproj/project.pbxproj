@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		199B3DF71EAB6B8200EBBD79 /* RCTTFShare.m in Sources */ = {isa = PBXBuildFile; fileRef = 199B3DF61EAB6B8200EBBD79 /* RCTTFShare.m */; };
+		199B3E611EAB728D00EBBD79 /* ShareIOS.m in Sources */ = {isa = PBXBuildFile; fileRef = 199B3E601EAB728D00EBBD79 /* ShareIOS.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,8 +24,8 @@
 
 /* Begin PBXFileReference section */
 		199B3DE91EAB6B0C00EBBD79 /* libRCTTFShare.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRCTTFShare.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		199B3DF51EAB6B8200EBBD79 /* RCTTFShare.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTTFShare.h; sourceTree = "<group>"; };
-		199B3DF61EAB6B8200EBBD79 /* RCTTFShare.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RCTTFShare.m; sourceTree = "<group>"; };
+		199B3E5F1EAB728D00EBBD79 /* ShareIOS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShareIOS.h; sourceTree = "<group>"; };
+		199B3E601EAB728D00EBBD79 /* ShareIOS.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShareIOS.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,8 +42,8 @@
 		199B3DE01EAB6B0C00EBBD79 = {
 			isa = PBXGroup;
 			children = (
-				199B3DF51EAB6B8200EBBD79 /* RCTTFShare.h */,
-				199B3DF61EAB6B8200EBBD79 /* RCTTFShare.m */,
+				199B3E5F1EAB728D00EBBD79 /* ShareIOS.h */,
+				199B3E601EAB728D00EBBD79 /* ShareIOS.m */,
 				199B3DEA1EAB6B0C00EBBD79 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -113,7 +113,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				199B3DF71EAB6B8200EBBD79 /* RCTTFShare.m in Sources */,
+				199B3E611EAB728D00EBBD79 /* ShareIOS.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,6 +255,7 @@
 				199B3DF41EAB6B0C00EBBD79 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
