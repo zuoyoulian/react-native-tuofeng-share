@@ -191,14 +191,13 @@ RCT_EXPORT_METHOD(shareToWeiboWithInfo:(NSDictionary *)info logo:(NSString *)log
     
     NSMutableDictionary *dic=[[NSMutableDictionary alloc] initWithDictionary:info];
     
-    NSURL *url;
+    UIImage *img;
     // 网络图片
     if ([logo hasPrefix: @"http://"] || [logo hasPrefix: @"https://"]) {
-        url = [NSURL URLWithString:logo];
+        img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:logo]]];
     } else {  // 本地图片
-        url = [NSURL fileURLWithPath:logo];
+        img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfFile:logo]];
     }
-    UIImage *img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:url]];
     
     NSDictionary *message;
     // 分享图片
@@ -208,13 +207,7 @@ RCT_EXPORT_METHOD(shareToWeiboWithInfo:(NSDictionary *)info logo:(NSString *)log
                             },
                     @"text" : info[@"title"]};
     } else {
-        CGSize size = CGSizeMake(100, 100);
-        UIGraphicsBeginImageContext(size);
-        [img drawInRect:CGRectMake(0,0, size.width, size.height)];
-        UIImage* scaledImage = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-        NSData *thumbData = UIImageJPEGRepresentation(scaledImage, 1);
-        dic[@"thumbnailData"] = thumbData;
+        dic[@"thumbnailData"] = [self thumbDataWithImg: img];
         dic[@"__class"] = @"WBWebpageObject";
         message = @{@"__class" : @"WBMessageObject", @"mediaObject":dic};
     }
@@ -234,23 +227,16 @@ RCT_EXPORT_METHOD(shareToWeiboWithInfo:(NSDictionary *)info logo:(NSString *)log
 //  分享QQ
 RCT_EXPORT_METHOD(shareToQQWithLogo:(NSString *)logo type:(NSString *)type callback:(RCTResponseSenderBlock)callback){
     
-    NSURL *url;
+    UIImage *img;
     // 网络图片
     if ([logo hasPrefix: @"http://"] || [logo hasPrefix: @"https://"]) {
-        url = [NSURL URLWithString:logo];
+        img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:logo]]];
     } else {  // 本地图片
-        url = [NSURL fileURLWithPath:logo];
+        img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfFile:logo]];
     }
-    UIImage *img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:url]];
     
-    CGSize size = CGSizeMake(100, 100);
-    UIGraphicsBeginImageContext(size);
-    [img drawInRect:CGRectMake(0,0, size.width, size.height)];
-    UIImage* scaledImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    NSData *thumbData = UIImageJPEGRepresentation(scaledImage, 1);
-    
-    NSDictionary *previewimagedata = @{@"previewimagedata":thumbData};
+    // 压缩缩略图
+    NSDictionary *previewimagedata = @{@"previewimagedata":[self thumbDataWithImg: img]};
     
     NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:previewimagedata];
     
@@ -277,27 +263,13 @@ RCT_EXPORT_METHOD(shareToWeixinWithInfo:(NSDictionary *)info appid:(NSString *)a
         img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfFile:logo]];
     }
     
-    CGSize size = CGSizeMake((int)(300 * img.size.width / img.size.height), 300);
-    UIGraphicsBeginImageContext(size);
-    [img drawInRect:CGRectMake(0,0, size.width, size.height)];
-    
     // 发图片
     if ([type integerValue] == 1) {
         dic[@"fileData"] = UIImageJPEGRepresentation(img, 1);
     }
     
     // 压缩缩略图
-    CGFloat maxFileSize = 32*1024; // 微信缩略图最大32k
-    CGFloat compression = 0.9f;
-    CGFloat maxCompression = 0.1f;
-    UIImage* scaledImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    NSData *thumbData = UIImageJPEGRepresentation(scaledImage, compression);
-    while ([thumbData length] > maxFileSize && compression > maxCompression) {
-        compression -= 0.1;
-        thumbData = UIImageJPEGRepresentation(scaledImage, compression);
-    }
-    dic[@"thumbData"] = thumbData;
+    dic[@"thumbData"] = [self thumbDataWithImg: img];
     
     NSData *output=[NSPropertyListSerialization dataWithPropertyList:@{appid:dic} format:NSPropertyListBinaryFormat_v1_0 options:0 error:nil];
     [[UIPasteboard generalPasteboard] setData:output forPasteboardType:@"content"];
@@ -317,26 +289,33 @@ RCT_EXPORT_METHOD(shareToWeixinMiniWithInfo:(NSDictionary *)info appid:(NSString
         img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfFile:logo]];
     }
     
-    CGSize size = CGSizeMake((int)(300 * img.size.width / img.size.height), 300);
-    UIGraphicsBeginImageContext(size);
-    [img drawInRect:CGRectMake(0,0, size.width, size.height)];
     // 压缩缩略图
-    CGFloat maxFileSize = 32*1024; // 微信缩略图最大32k
-    CGFloat compression = 0.9f;
-    CGFloat maxCompression = 0.1f;
-    UIImage* scaledImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    NSData *thumbData = UIImageJPEGRepresentation(scaledImage, compression);
-    while ([thumbData length] > maxFileSize && compression > maxCompression) {
-        compression -= 0.1;
-        thumbData = UIImageJPEGRepresentation(scaledImage, compression);
-    }
-    dic[@"thumbData"] = thumbData;
+    dic[@"thumbData"] = [self thumbDataWithImg: img];
     
     NSData *output=[NSPropertyListSerialization dataWithPropertyList:@{appid:dic} format:NSPropertyListBinaryFormat_v1_0 options:0 error:nil];
     [[UIPasteboard generalPasteboard] setData:output forPasteboardType:@"content"];
     
     callback(@[]);
+}
+
+// 压缩缩略图
+-(NSData *)thumbDataWithImg: (UIImage *)img {
+    CGSize size = CGSizeMake((int)(200 * img.size.width / img.size.height), 200);
+    UIGraphicsBeginImageContext(size);
+    [img drawInRect:CGRectMake(0,0, size.width, size.height)];
+    
+    UIImage* scaledImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    CGFloat maxFileSize = 32*1024; // 微信缩略图最大32k
+    CGFloat compression = 0.9f;
+    CGFloat maxCompression = 0.1f;
+    NSData *thumbData = UIImageJPEGRepresentation(scaledImage, compression);
+    while ([thumbData length] > maxFileSize && compression > maxCompression) {
+        compression -= 0.1;
+        thumbData = UIImageJPEGRepresentation(scaledImage, compression);
+    }
+    return thumbData;
 }
 
 
@@ -413,17 +392,17 @@ RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID 
     
     if ([url.absoluteString rangeOfString:@"://oauth"].location != NSNotFound) {
         // 登录成功
-        return @{@"title" : @"微信登录成功", @"res" : [self parseUrl:url]};
+        return @{@"result" : @YES, @"title" : @"微信登录成功", @"res" : [self parseUrl:url]};
     } else {
         if (retDic[@"state"] && [retDic[@"state"] isEqualToString:@"Weixinauth"] && [retDic[@"result"] intValue] != 0) {
             // 登录失败
-            return @{@"title" : @"微信登录失败", @"res" : retDic};
+            return @{@"result" : @NO, @"title" : @"微信登录失败", @"res" : retDic};
         }else if([retDic[@"result"] intValue] == 0){
             // 分享成功
-            return @{@"title" : @"微信分享成功", @"res" : retDic};
+            return @{@"result" : @YES, @"title" : @"微信分享成功", @"res" : retDic};
         }else{
             // 分享失败
-            return @{@"title" : @"微信分享失败", @"res" : retDic};
+            return @{@"result" : @NO, @"title" : @"微信分享失败", @"res" : retDic};
         }
     }
 }
@@ -441,16 +420,16 @@ RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID 
     if ([transferObject[@"__class"] isEqualToString:@"WBAuthorizeResponse"]) {
         //auth
         if ([transferObject[@"statusCode"] intValue] == 0) {
-            return @{@"title" : @"微博登录成功", @"res" : transferObject};
+            return @{@"result" : @YES, @"title" : @"微博登录成功", @"res" : transferObject};
         }else{
-            return @{@"title" : @"微博登录失败", @"res" : transferObject};
+            return @{@"result" : @NO, @"title" : @"微博登录失败", @"res" : transferObject};
         }
     }else if ([transferObject[@"__class"] isEqualToString:@"WBSendMessageToWeiboResponse"]) {
         //分享回调
         if ([transferObject[@"statusCode"] intValue] == 0) {
-            return @{@"title" : @"微博分享成功", @"res" : transferObject};
+            return @{@"result" : @YES, @"title" : @"微博分享成功", @"res" : transferObject};
         }else{
-            return @{@"title" : @"微博分享失败", @"res" : transferObject};
+            return @{@"result" : @NO, @"title" : @"微博分享失败", @"res" : transferObject};
         }
     } else {
         return @{};
@@ -463,9 +442,9 @@ RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID 
     NSMutableDictionary *ret = [NSMutableDictionary dictionaryWithDictionary:[NSKeyedUnarchiver unarchiveObjectWithData:data]];
     
     if (ret[@"ret"] && [ret[@"ret"] intValue] == 0) {
-        return @{@"title": @"QQ登录成功", @"res": ret};
+        return @{@"result" : @YES, @"title": @"QQ登录成功", @"res": ret};
     }else{
-        return @{@"title": @"QQ登录失败", @"res": ret};
+        return @{@"result" : @NO, @"title": @"QQ登录失败", @"res": ret};
     }
 }
 //  QQ 分享回调处理
@@ -475,9 +454,9 @@ RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID 
         [dic setValue:[self base64Decode:dic[@"error_description"]] forKey:@"error_description"];
     }
     if ([dic[@"error"] intValue] != 0) {
-        return @{@"title" : @"QQ分享失败", @"res" : dic};
+        return @{@"result" : @NO, @"title" : @"QQ分享失败", @"res" : dic};
     }else {
-        return @{@"title" : @"QQ分享成功", @"res" : dic};
+        return @{@"result" : @YES, @"title" : @"QQ分享成功", @"res" : dic};
     }
 }
 
