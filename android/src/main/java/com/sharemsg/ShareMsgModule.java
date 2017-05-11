@@ -6,10 +6,12 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.facebook.react.bridge.ActivityEventListener;
@@ -17,6 +19,7 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.sharemsg.activities.WeiboShareReqActivity;
 import com.sina.weibo.sdk.api.share.IWeiboShareAPI;
@@ -27,12 +30,22 @@ import com.sina.weibo.sdk.auth.WeiboAuthListener;
 import com.sina.weibo.sdk.auth.sso.SsoHandler;
 import com.sina.weibo.sdk.exception.WeiboException;
 import com.tencent.connect.share.QQShare;
+import com.tencent.mm.opensdk.modelmsg.SendAuth;
+import com.tencent.mm.opensdk.modelmsg.SendMessageToWX;
+import com.tencent.mm.opensdk.modelmsg.WXImageObject;
+import com.tencent.mm.opensdk.modelmsg.WXMediaMessage;
+import com.tencent.mm.opensdk.modelmsg.WXMiniProgramObject;
+import com.tencent.mm.opensdk.modelmsg.WXWebpageObject;
+import com.tencent.mm.opensdk.openapi.IWXAPI;
+import com.tencent.mm.opensdk.openapi.WXAPIFactory;
 import com.tencent.tauth.IUiListener;
 import com.tencent.tauth.Tencent;
 import com.tencent.tauth.UiError;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -53,7 +66,7 @@ public class ShareMsgModule extends ReactContextBaseJavaModule implements Activi
     private int NO_INSTALL = 1022;
     public static ReactApplicationContext reactApplicationContext;
 
-    // public static IWXAPI iwxapi;
+    public static IWXAPI iwxapi;
     public static IWeiboShareAPI weibapi;
     public static Tencent qqapi;
 
@@ -114,11 +127,11 @@ public class ShareMsgModule extends ReactContextBaseJavaModule implements Activi
         return false;
     }
     //init
-    // @ReactMethod
-    // public void initWechat(String app_id){
-    //     iwxapi = WXAPIFactory.createWXAPI(getReactApplicationContext(),app_id,true);
-    //     resultShareMsgModule("initWechat:"+iwxapi.registerApp(app_id));
-    // }
+    @ReactMethod
+    public void initWechat(String app_id){
+        iwxapi = WXAPIFactory.createWXAPI(getReactApplicationContext(),app_id,true);
+        resultShareMsgModule("initWechat:"+iwxapi.registerApp(app_id));
+    }
 
     @ReactMethod
     public void initWeibo(String app_id){
@@ -136,23 +149,23 @@ public class ShareMsgModule extends ReactContextBaseJavaModule implements Activi
         }
     }
 
-    //login
-    // @ReactMethod
-    // public void loginWechat(String scopes,String state){
-    //     if (iwxapi==null){
-    //         resultShareMsgModule("wechatLogin:"+NO_INIT);
-    //         return;
-    //     }
+    // login
+    @ReactMethod
+    public void loginWechat(String scopes,String state){
+        if (iwxapi==null){
+         resultShareMsgModule("wechatLogin:"+NO_INIT);
+         return;
+        }
 
-    //     if (!iwxapi.isWXAppInstalled()){
-    //         resultShareMsgModule("wechatLogin:"+NO_INSTALL);
-    //         return;
-    //     }
-    //     SendAuth.Req req = new SendAuth.Req();
-    //     req.scope = TextUtils.isEmpty(scopes)?"snsapi_userinfo":scopes;//需要的权限范围
-    //     req.state = TextUtils.isEmpty(state)?"login_test":state;
-    //     iwxapi.sendReq(req);
-    // }
+        if (!iwxapi.isWXAppInstalled()){
+         resultShareMsgModule("wechatLogin:"+NO_INSTALL);
+         return;
+        }
+        SendAuth.Req req = new SendAuth.Req();
+        req.scope = TextUtils.isEmpty(scopes)?"snsapi_userinfo":scopes;//需要的权限范围
+        req.state = TextUtils.isEmpty(state)?"login_test":state;
+        iwxapi.sendReq(req);
+    }
 
     @ReactMethod
     public void loginQQ(String scopes){
@@ -175,40 +188,103 @@ public class ShareMsgModule extends ReactContextBaseJavaModule implements Activi
         }
     }
 
+    public static final String OPTIONS_SCENE = "scene";
+    public static final String OPTIONS_TYPE = "type";
+    public static final String OPTIONS_TAG_NAME = "tagName";
+    public static final int TYPE_IMAGE = 2;         //图片
+    public static final String OPTIONS_IMAGE_URL = "imageUrl";
+    public static final String OPTIONS_IMAGE_PATH = "imagePath";
+    public static final int TYPE_WEB_PAGE = 3;      //网页
+    public static final String OPTIONS_TITLE = "title";
+    public static final String OPTIONS_DESC = "desc";
+    public static final String OPTIONS_TRANSACTION = "transaction";
+    public static final String OPTIONS_THUMB_IMAGE = "thumbImage";
+    public static final String OPTIONS_WEBPAGE_URL = "webpageUrl";
+    public static final int TYPE_PROGRAM = 6;       //小程序
+    public static final String OPTIONS_PROGRAM_USER_NAME = "userName";
+    public static final String OPTIONS_PROGRAM_PATH = "programPath";
+
+    Bitmap bitmap = null;           //分享的缩略图
     //share
-    // @ReactMethod
-    // public void shareWechat(String title,String desc,String image,String url,int toWhere){
-    //     if (iwxapi==null){
-    //         resultShareMsgModule("wechatShare:"+NO_INIT);
-    //         return;
-    //     }
+    @ReactMethod
+    public void shareWechat(ReadableMap options){
+        if (iwxapi==null){
+            resultShareMsgModule("wechatShare:"+NO_INIT);
+            return;
+        }
 
-    //     if (!iwxapi.isWXAppInstalled()){
-    //         resultShareMsgModule("wechatShare:"+NO_INSTALL);
-    //         return;
-    //     }
+        if (!iwxapi.isWXAppInstalled()){
+            resultShareMsgModule("wechatShare:"+NO_INSTALL);
+            return;
+        }
+        if (options != null && options.hasKey(OPTIONS_TYPE)) {
+            WXMediaMessage msg = new WXMediaMessage();
+            int type = options.getInt(OPTIONS_TYPE);
+            switch (type) {
+                case TYPE_IMAGE:
+                    msg.mediaObject = getImageObj(options);
+                    break;
+                case TYPE_WEB_PAGE:
+                    msg.mediaObject = getWebpageObj(options);
+                    break;
+                case TYPE_PROGRAM:
+                    msg.mediaObject = getProgramObject(options);
+                    break;
+                default:
+                    return;
+            }
 
-    //     // 初始化wxwebobject
-    //     WXWebpageObject webObject = new WXWebpageObject();
-    //     webObject.webpageUrl = url;
+            if (options.hasKey(OPTIONS_TITLE)) {
+                String title = options.getString(OPTIONS_TITLE);
+                if (!TextUtils.isEmpty(title)) {
+                    msg.title = title;
+                }
+            }
+            if (options.hasKey(OPTIONS_DESC)) {
+                String desc = options.getString(OPTIONS_DESC);
+                if (!TextUtils.isEmpty(desc)) {
+                    msg.description = desc;
+                }
+            }
+            if (options.hasKey(OPTIONS_TAG_NAME)) {
+                String tagName = options.getString(OPTIONS_TAG_NAME);
+                if (!TextUtils.isEmpty(tagName)) {
+                    msg.mediaTagName = tagName;
+                }
+            }
 
-    //     // 初始化wxmediamessage
-    //     WXMediaMessage msg = new WXMediaMessage(webObject);
-    //     msg.title = title;
-    //     msg.description = desc;
-    //     Bitmap bmp = BitmapChange.getBC().getBitmap(image);
-    //     Bitmap thumbBmp = Bitmap.createScaledBitmap(bmp,THUMB_SIZE,THUMB_SIZE,true);
-    //     bmp.recycle();
-    //     msg.thumbData = BitmapChange.getBC().bmpToByteArray(thumbBmp);
+            if (bitmap != null) {
+                msg.thumbData = compressBitmapToData(bitmap, 32);
+                while (msg.thumbData.length / 1024 > 32){
+                    Matrix matrix = new Matrix();
+                    matrix.setScale(0.5f, 0.5f);
+                    bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                    msg.thumbData = compressBitmapToData(bitmap, 32);
+                }
+                bitmap.recycle();
+            }
 
-    //     // 构造一个req
-    //     SendMessageToWX.Req req = new SendMessageToWX.Req();
-    //     req.transaction = String.valueOf(System.currentTimeMillis());
-    //     req.message = msg;
-    //     //分享到好友SendMessageToWX.Req.WXSceneSession;朋友圈SendMessageToWX.Req.WXSceneTimeline
-    //     req.scene = toWhere!=0? toWhere:0;
-    //     iwxapi.sendReq(req);
-    // }
+            SendMessageToWX.Req req = new SendMessageToWX.Req();
+            req.message = msg;
+            if (options.hasKey(OPTIONS_TRANSACTION)) {
+                String transaction = options.getString(OPTIONS_TRANSACTION);
+                if (!TextUtils.isEmpty(transaction)) {
+                    req.transaction = transaction;
+                } else {
+                    req.transaction = String.valueOf(System.currentTimeMillis());
+                }
+            }
+            if (options.hasKey(OPTIONS_SCENE)) {
+                int scene = options.getInt(OPTIONS_SCENE);
+                if (scene == 0 || scene == 1 || scene == 2) {
+                    req.scene = scene;
+                } else {
+                    req.scene = 0;
+                }
+            }
+            iwxapi.sendReq(req);
+        }
+    }
 
     @ReactMethod
     public void shareWeibo(int type,String text,String title,String desc,String image,String url){
@@ -423,5 +499,125 @@ public class ShareMsgModule extends ReactContextBaseJavaModule implements Activi
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * 获取图片对象
+     * */
+    private WXImageObject getImageObj(ReadableMap options) {
+        if (options.hasKey(OPTIONS_IMAGE_URL)) {
+            String remoteUrl = options.getString(OPTIONS_IMAGE_URL);
+            try {
+                bitmap = BitmapFactory.decodeStream(new URL(remoteUrl).openStream());
+            } catch (IOException e) {
+                bitmap = null;
+                e.printStackTrace();
+            }
+        }
+        if (options.hasKey(OPTIONS_IMAGE_PATH)) {
+            String localPath = options.getString(OPTIONS_IMAGE_PATH);
+            if (localPath.contains("http")){
+                try {
+                    bitmap = BitmapFactory.decodeStream(new URL(localPath).openStream());
+                } catch (IOException e) {
+                    bitmap = null;
+                    e.printStackTrace();
+                }
+            }else {
+                File file = new File(localPath);
+                if (file.exists()) {
+                    bitmap = BitmapFactory.decodeFile(localPath);
+                } else {
+                    bitmap = null;
+                }
+            }
+        }
+        WXImageObject imageObject = new WXImageObject(bitmap);
+        return imageObject;
+    }
+
+    /**
+     * 获取网页对象
+     * */
+    private WXWebpageObject getWebpageObj(ReadableMap options) {
+        WXWebpageObject webpageObject = new WXWebpageObject();
+        if (options.hasKey(OPTIONS_WEBPAGE_URL)) {
+            webpageObject.webpageUrl = options.getString(OPTIONS_WEBPAGE_URL);
+        }
+        if(options.hasKey(OPTIONS_THUMB_IMAGE)){
+            String thumbImage = options.getString(OPTIONS_THUMB_IMAGE);
+            try {
+                bitmap = BitmapFactory.decodeStream(new URL(thumbImage).openStream());
+            } catch (IOException e) {
+                bitmap = null;
+                e.printStackTrace();
+            }
+        }
+        return webpageObject;
+    }
+
+    /*
+    * 获取小程序对象
+    * */
+    private WXMiniProgramObject getProgramObject(ReadableMap options){
+        WXMiniProgramObject programObject = new WXMiniProgramObject();
+        if (options.hasKey(OPTIONS_WEBPAGE_URL)){
+            programObject.webpageUrl = options.getString(OPTIONS_WEBPAGE_URL);// 低版本微信打开url
+        }
+        if (options.hasKey(OPTIONS_PROGRAM_USER_NAME)){
+            programObject.userName = options.getString(OPTIONS_PROGRAM_USER_NAME); // 跳转微信小程序的原始name
+        }
+        if (options.hasKey(OPTIONS_PROGRAM_PATH)){
+            // 小程序path
+            programObject.path = options.getString(OPTIONS_PROGRAM_PATH);
+        }
+
+        if(options.hasKey(OPTIONS_THUMB_IMAGE)){
+            String thumbImage = options.getString(OPTIONS_THUMB_IMAGE);
+            try {
+                bitmap = BitmapFactory.decodeStream(new URL(thumbImage).openStream());
+            } catch (IOException e) {
+                bitmap = null;
+                e.printStackTrace();
+            }
+        }
+        return programObject;
+    }
+
+    /**
+     * 微信分享图片限制
+     * @param bmp
+     * @param size
+     * @return
+     */
+    private byte[] compressBitmapToData(Bitmap bmp,float size) {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] result;
+        try {
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, output);//质量压缩方法，这里100表示不压缩，把压缩后的数据存放到baos中
+            int options = 100;
+            while ( output.toByteArray().length / 1024 >= size) {  //循环判断如果压缩后图片是否大于size kb,大于继续压缩
+                output.reset();//重置baos即清空baos
+                bmp.compress(Bitmap.CompressFormat.JPEG, options, output);//这里压缩options%，把压缩后的数据存放到baos中
+                if(options==1){
+                    break;
+                }
+                options -= 10;//每次都减少10
+                if(options<=0){
+                    options=1;
+                }
+            }
+            result = output.toByteArray();
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }finally {
+            try {
+                output.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

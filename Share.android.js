@@ -25,9 +25,9 @@ export default class Share {
    */
   //android接口初始化 
   //微信
-  // initWechat(wechat_id){
-  //   ShareMsg.initWechat(wechat_id)
-  // }
+  initWechat(wechat_id){
+    ShareMsg.initWechat(wechat_id)
+  }
   //QQ
   initQQ(qq_id){
     ShareMsg.initQQ(qq_id)
@@ -46,13 +46,13 @@ export default class Share {
     })
   }
   // 判断是否安装微信
-  // IsWeixinInstalled() {
-  //   return new Promise(function(resolve, reject){
-  //     ShareMsg.isInstallWechat('com.tencent.mm',cb=>{
-  //       resolve(cb)
-  //     })
-  //   })
-  // }
+  IsWeixinInstalled() {
+    return new Promise(function(resolve, reject){
+      ShareMsg.isInstallWechat('com.tencent.mm',cb=>{
+        resolve(cb)
+      })
+    })
+  }
   // 判断是否安装微博
   IsWeiboInstalled() {
     return new Promise(function(resolve, reject){
@@ -63,9 +63,9 @@ export default class Share {
   }
 
   // 授权登录
-  // weixinLogin(weiXinAppID) {
-  //   ShareMsg.loginWechat('','')
-  // }
+  weixinLogin(weiXinAppID) {
+    ShareMsg.loginWechat('','')
+  }
 
   qqLogin(QQAppID) {
     ShareMsg.loginQQ('')
@@ -115,10 +115,36 @@ shareToWeibo(info, weiboAppKey) {
   info 分享的内容  例如：{title: '测试', desc: 'rn分享', logo: 'http://jijia.tuofeng.cn/plan/images/ins_company/ddhrs.jpg', url: 'http://jijia.tuofeng.cn/#plans'}
   shareTo  分享的类型   0 微信好友  1 微信朋友圈   2 微信收藏
 **/
-  // shareToWeixin(info, weiXinAppID, shareTo, weiXindict) {
-  //   //参数 标题,描述,图标地址,链接地址,好友0|朋友圈1|收藏2
-  //   ShareMsg.shareWechat(info.title,info.desc,info.logo,info.url,shareTo)
-  // }
+  shareToWeixin(info, weiXinAppID, shareTo, weiXindict) {
+    const shareOptions = {
+      type: info.type ? info.type : 3,
+      webpageUrl: info.url,
+      tagName: 'test tagName',
+      title: info.title,
+      desc: info.desc,
+      thumbImage: info.logo,
+      imagePath: info.imagePath,
+    }
+
+    shareOptions.scene = shareTo
+    ShareMsg.shareWechat(shareOptions)
+  }
+
+  shareToWeixinMini(info, weiXinAppID, shareTo, weiXindict) {
+    ShareMsg.initWechat(weiXinAppID)
+    const shareOptions = {
+      type: 6,
+      webpageUrl: info.webpageUrl, // 低版本分享网页
+      title: info.title,
+      desc: info.desc,
+      thumbImage: info.logo,
+      userName: info.userName,
+      programPath: info.path, //可为空
+    }
+
+    shareOptions.scene = shareTo
+    ShareMsg.shareWechat(shareOptions)
+  }
 
 
  //发送邮件
