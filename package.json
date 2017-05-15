@@ -1,6 +1,6 @@
 {
   "name": "react-native-tuofeng-share",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "private": true,
   "description": "实现了微信授权登录、QQ授权登录、微博授权登录，以及微信分享、QQ分享、微博分享、邮件分享和短信分享",
   "main": "index.js",
@@ -17,5 +17,14 @@
     "share",
     "TFShare",
     "react-native"
-  ]
+  ],
+  "devDependencies": {
+    "babel-eslint": "^7.2.3",
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^15.0.0",
+    "eslint-plugin-import": "^2.2.0",
+    "eslint-plugin-jsx-a11y": "^5.0.1",
+    "eslint-plugin-react": "^7.0.1",
+    "eslint-plugin-react-native": "^2.3.2"
+  }
 }
