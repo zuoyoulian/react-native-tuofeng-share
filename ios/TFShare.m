@@ -14,12 +14,23 @@
 }
 
 @property (nonatomic, copy) RCTResponseSenderBlock callback;
+@property (nonatomic, copy) NSData *pasteboardContent;
+@property (nonatomic, assign) BOOL isShare;
 
 @end
 
 @implementation TFShare
 
 RCT_EXPORT_MODULE();
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleOpenURL:) name:@"RCTOpenURLNotification" object:nil];
+    }
+    return self;
+}
 
 
 #pragma mark-短信分享-
@@ -34,6 +45,7 @@ RCT_EXPORT_MODULE();
  */
 RCT_EXPORT_METHOD(shareToMessageWithInfo :(NSDictionary *)info callback:(RCTResponseSenderBlock)callback) {
     self.callback = callback;
+    self.isShare = YES;
     // 获取根视图控制器
     UIViewController *controller = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     
@@ -82,19 +94,19 @@ RCT_EXPORT_METHOD(shareToMessageWithInfo :(NSDictionary *)info callback:(RCTResp
     [controller dismissViewControllerAnimated:YES completion:nil];
     switch (result) {
         case MessageComposeResultSent:
-        NSLog(@"Result: 发送成功");
-        self.callback(@[@{@"title" : @"短信发送成功", @"res" : @{@"message": @"短信发送成功"}}]);
-        break;
+            NSLog(@"Result: 发送成功");
+            self.callback(@[@{@"title" : @"短信发送成功", @"res" : @{@"message": @"短信发送成功"}}]);
+            break;
         case MessageComposeResultFailed:
-        NSLog(@"Result: 发送失败");
-        self.callback(@[@{@"title" : @"短信发送失败", @"res" : @{@"message": @"短信发送失败"}}]);
-        break;
+            NSLog(@"Result: 发送失败");
+            self.callback(@[@{@"title" : @"短信发送失败", @"res" : @{@"message": @"短信发送失败"}}]);
+            break;
         case MessageComposeResultCancelled:
-        NSLog(@"Result: 取消");
-        self.callback(@[@{@"title" : @"短信发送失败", @"res" : @{@"message": @"用户取消发送"}}]);
-        break;
+            NSLog(@"Result: 取消");
+            self.callback(@[@{@"title" : @"短信发送失败", @"res" : @{@"message": @"用户取消发送"}}]);
+            break;
         default:
-        break;
+            break;
     }
 }
 
@@ -112,6 +124,7 @@ RCT_EXPORT_METHOD(shareToMessageWithInfo :(NSDictionary *)info callback:(RCTResp
  */
 RCT_EXPORT_METHOD(shareToMailWithInfo :(NSDictionary *)info callback:(RCTResponseSenderBlock)callback) {
     self.callback = callback;
+    self.isShare = YES;
     // 获取根视图控制器
     UIViewController *controller = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     if ([MFMailComposeViewController canSendMail]) {
@@ -162,24 +175,24 @@ RCT_EXPORT_METHOD(shareToMailWithInfo :(NSDictionary *)info callback:(RCTRespons
     switch (result)
     {
         case MFMailComposeResultCancelled:
-        NSLog(@"Result: 取消");
-        self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"用户取消发送"}}]);
-        break;
+            NSLog(@"Result: 取消");
+            self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"用户取消发送"}}]);
+            break;
         case MFMailComposeResultSaved:
-        NSLog(@"Result: 保存");
-        self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"用户保存邮件"}}]);
-        break;
+            NSLog(@"Result: 保存");
+            self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"用户保存邮件"}}]);
+            break;
         case MFMailComposeResultSent:
-        NSLog(@"Result: 发送成功");
-        self.callback(@[@{@"title" : @"邮箱发送成功", @"res" : @{@"message": @"邮件发送成功"}}]);
-        break;
+            NSLog(@"Result: 发送成功");
+            self.callback(@[@{@"title" : @"邮箱发送成功", @"res" : @{@"message": @"邮件发送成功"}}]);
+            break;
         case MFMailComposeResultFailed:
-        NSLog(@"Result: 发送失败");
-        self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"邮件发送失败"}}]);
-        break;
+            NSLog(@"Result: 发送失败");
+            self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"邮件发送失败"}}]);
+            break;
         default:
-        NSLog(@"Result: 没有发送");
-        break;
+            NSLog(@"Result: 没有发送");
+            break;
     }
 }
 
@@ -188,6 +201,9 @@ RCT_EXPORT_METHOD(shareToMailWithInfo :(NSDictionary *)info callback:(RCTRespons
 
 //  分享微博
 RCT_EXPORT_METHOD(shareToWeiboWithInfo:(NSDictionary *)info logo:(NSString *)logo type:(NSString *)type appKey:(NSString *)appKey callback:(RCTResponseSenderBlock)callback){
+    self.isShare = YES;
+    
+    logo = [logo stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     
     NSMutableDictionary *dic=[[NSMutableDictionary alloc] initWithDictionary:info];
     
@@ -226,6 +242,9 @@ RCT_EXPORT_METHOD(shareToWeiboWithInfo:(NSDictionary *)info logo:(NSString *)log
 }
 //  分享QQ
 RCT_EXPORT_METHOD(shareToQQWithLogo:(NSString *)logo type:(NSString *)type callback:(RCTResponseSenderBlock)callback){
+    self.isShare = YES;
+    
+    logo = [logo stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     
     UIImage *img;
     // 网络图片
@@ -234,6 +253,7 @@ RCT_EXPORT_METHOD(shareToQQWithLogo:(NSString *)logo type:(NSString *)type callb
     } else {  // 本地图片
         img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfFile:logo]];
     }
+    
     
     // 压缩缩略图
     NSDictionary *previewimagedata = @{@"previewimagedata":[self thumbDataWithImg: img]};
@@ -253,6 +273,9 @@ RCT_EXPORT_METHOD(shareToQQWithLogo:(NSString *)logo type:(NSString *)type callb
 
 //  分享微信
 RCT_EXPORT_METHOD(shareToWeixinWithInfo:(NSDictionary *)info appid:(NSString *)appid logo:(NSString *)logo type:(NSString *)type callback:(RCTResponseSenderBlock)callback) {
+    self.isShare = YES;
+    
+    logo = [logo stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     
     NSMutableDictionary *dic=[[NSMutableDictionary alloc] initWithDictionary:info];
     
@@ -279,6 +302,9 @@ RCT_EXPORT_METHOD(shareToWeixinWithInfo:(NSDictionary *)info appid:(NSString *)a
 
 // 分享微信小程序
 RCT_EXPORT_METHOD(shareToWeixinMiniWithInfo:(NSDictionary *)info appid:(NSString *)appid logo:(NSString *)logo callback:(RCTResponseSenderBlock)callback) {
+    self.isShare = YES;
+    
+    logo = [logo stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     
     NSMutableDictionary *dic=[[NSMutableDictionary alloc] initWithDictionary:info];
     
@@ -366,7 +392,12 @@ RCT_EXPORT_METHOD(weiboLoginAppKey:(NSString *)appKey callBack:(RCTResponseSende
 
 #pragma mark-回调处理-
 
-RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID callBack:(RCTResponseSenderBlock)callback){
+- (void)handleOpenURL:(NSNotification *)aNotificatio {
+    // 将剪切板内容copy，防止剪切板被清空
+    self.pasteboardContent = [[UIPasteboard generalPasteboard] dataForPasteboardType:@"content"];
+}
+
+RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID callBack:(RCTResponseSenderBlock)callback) {
     
     NSURL* url=[NSURL URLWithString:returnedURL];
     NSDictionary *result = nil;
@@ -382,27 +413,30 @@ RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID 
     } else {
         
     }
+    
+    self.isShare = NO;
     callback(@[result]);
 }
 
 //  微信回调处理
 -(NSDictionary *)Weixin_handleOpenURL:(NSURL *)url andAppID:(NSString *)appID {
+    NSDictionary *retDic=[NSPropertyListSerialization propertyListWithData:self.pasteboardContent?:[[NSData alloc] init] options:0 format:0 error:nil][appID];
     
-    NSDictionary *retDic=[NSPropertyListSerialization propertyListWithData:[[UIPasteboard generalPasteboard] dataForPasteboardType:@"content"]?:[[NSData alloc] init] options:0 format:0 error:nil][appID];
+    NSString *type = self.isShare ? @"share" : @"login";
     
     if ([url.absoluteString rangeOfString:@"://oauth"].location != NSNotFound) {
         // 登录成功
-        return @{@"result" : @YES, @"title" : @"微信登录成功", @"res" : [self parseUrl:url]};
+        return @{@"result" : @YES, @"type": type, @"title" : @"微信登录成功"};
     } else {
         if (retDic[@"state"] && [retDic[@"state"] isEqualToString:@"Weixinauth"] && [retDic[@"result"] intValue] != 0) {
             // 登录失败
-            return @{@"result" : @NO, @"title" : @"微信登录失败", @"res" : retDic};
+            return @{@"result" : @NO, @"type": type, @"title" : @"微信登录失败"};
         }else if([retDic[@"result"] intValue] == 0){
             // 分享成功
-            return @{@"result" : @YES, @"title" : @"微信分享成功", @"res" : retDic};
+            return @{@"result" : @YES, @"type": type, @"title" : @"微信分享成功"};
         }else{
             // 分享失败
-            return @{@"result" : @NO, @"title" : @"微信分享失败", @"res" : retDic};
+            return @{@"result" : @NO, @"type": type, @"title" : @"微信分享失败"};
         }
     }
 }
@@ -420,16 +454,16 @@ RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID 
     if ([transferObject[@"__class"] isEqualToString:@"WBAuthorizeResponse"]) {
         //auth
         if ([transferObject[@"statusCode"] intValue] == 0) {
-            return @{@"result" : @YES, @"title" : @"微博登录成功", @"res" : transferObject};
+            return @{@"result" : @YES, @"type": @"login", @"title" : @"微博登录成功"};
         }else{
-            return @{@"result" : @NO, @"title" : @"微博登录失败", @"res" : transferObject};
+            return @{@"result" : @NO, @"type": @"login", @"title" : @"微博登录失败"};
         }
     }else if ([transferObject[@"__class"] isEqualToString:@"WBSendMessageToWeiboResponse"]) {
         //分享回调
         if ([transferObject[@"statusCode"] intValue] == 0) {
-            return @{@"result" : @YES, @"title" : @"微博分享成功", @"res" : transferObject};
+            return @{@"result" : @YES, @"type": @"share", @"title" : @"微博分享成功"};
         }else{
-            return @{@"result" : @NO, @"title" : @"微博分享失败", @"res" : transferObject};
+            return @{@"result" : @NO, @"type": @"share", @"title" : @"微博分享失败"};
         }
     } else {
         return @{};
@@ -442,9 +476,9 @@ RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID 
     NSMutableDictionary *ret = [NSMutableDictionary dictionaryWithDictionary:[NSKeyedUnarchiver unarchiveObjectWithData:data]];
     
     if (ret[@"ret"] && [ret[@"ret"] intValue] == 0) {
-        return @{@"result" : @YES, @"title": @"QQ登录成功", @"res": ret};
+        return @{@"result" : @YES, @"type": @"login", @"title": @"QQ登录成功"};
     }else{
-        return @{@"result" : @NO, @"title": @"QQ登录失败", @"res": ret};
+        return @{@"result" : @NO, @"type": @"login", @"title": @"QQ登录失败"};
     }
 }
 //  QQ 分享回调处理
@@ -454,9 +488,9 @@ RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID 
         [dic setValue:[self base64Decode:dic[@"error_description"]] forKey:@"error_description"];
     }
     if ([dic[@"error"] intValue] != 0) {
-        return @{@"result" : @NO, @"title" : @"QQ分享失败", @"res" : dic};
+        return @{@"result" : @NO, @"type": @"share", @"title" : @"QQ分享失败"};
     }else {
-        return @{@"result" : @YES, @"title" : @"QQ分享成功", @"res" : dic};
+        return @{@"result" : @YES, @"type": @"share", @"title" : @"QQ分享成功"};
     }
 }
 
