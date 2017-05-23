@@ -2,7 +2,7 @@ import {
   Linking,
   NativeModules,
 } from 'react-native'
-import Buffer from 'buffer'
+import { Buffer } from 'buffer'
 
 const openShare = NativeModules.TFShare
 
@@ -83,13 +83,13 @@ export default class Share {
   static shareToQQ(info, shareTo, QQAppID) {
     // callback_name 是 'QQ' 拼接 QQAppID的16进制
     const callbackName = `QQ${(QQAppID).toString(16)}`
-    const title = encodeURI(Buffer.from(info.title).toString('base64'))
-    const url = encodeURI(new Buffer.from(info.url).toString('base64'))
-    const description = encodeURI(new Buffer.from(info.desc).toString('base64'))
+    const title = encodeURI(Buffer(info.title).toString('base64'))
+    const url = encodeURI(Buffer(info.url).toString('base64'))
+    const description = encodeURI(Buffer(info.desc).toString('base64'))
     const type = (info.type && info.type === 1) ? '1' : '0'
 
     openShare.shareToQQWithLogo(info.logo, type, (response) => {
-      const thirdAppDisplayName = Buffer.from(response.thirdAppDisplayName).toString('base64')
+      const thirdAppDisplayName = Buffer(response.thirdAppDisplayName).toString('base64')
 
       // 发送图片
       if (type === '1') {
