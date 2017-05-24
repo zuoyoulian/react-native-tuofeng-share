@@ -15,7 +15,6 @@
 
 @property (nonatomic, copy) RCTResponseSenderBlock callback;
 @property (nonatomic, copy) NSData *pasteboardContent;
-@property (nonatomic, assign) BOOL isShare;
 
 @end
 
@@ -28,6 +27,7 @@ RCT_EXPORT_MODULE();
     self = [super init];
     if (self) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleOpenURL:) name:@"RCTOpenURLNotification" object:nil];
+        //        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(endBackground:) name:UIApplicationWillEnterForegroundNotification object:nil];
     }
     return self;
 }
@@ -45,7 +45,6 @@ RCT_EXPORT_MODULE();
  */
 RCT_EXPORT_METHOD(shareToMessageWithInfo :(NSDictionary *)info callback:(RCTResponseSenderBlock)callback) {
     self.callback = callback;
-    self.isShare = YES;
     // 获取根视图控制器
     UIViewController *controller = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     
@@ -89,8 +88,7 @@ RCT_EXPORT_METHOD(shareToMessageWithInfo :(NSDictionary *)info callback:(RCTResp
     }
     
 }
--(void)messageComposeViewController:(MFMessageComposeViewController *)controller didFinishWithResult:(MessageComposeResult)result
-{
+- (void)messageComposeViewController:(MFMessageComposeViewController *)controller didFinishWithResult:(MessageComposeResult)result {
     [controller dismissViewControllerAnimated:YES completion:nil];
     switch (result) {
         case MessageComposeResultSent:
@@ -124,7 +122,6 @@ RCT_EXPORT_METHOD(shareToMessageWithInfo :(NSDictionary *)info callback:(RCTResp
  */
 RCT_EXPORT_METHOD(shareToMailWithInfo :(NSDictionary *)info callback:(RCTResponseSenderBlock)callback) {
     self.callback = callback;
-    self.isShare = YES;
     // 获取根视图控制器
     UIViewController *controller = [[[UIApplication sharedApplication] keyWindow] rootViewController];
     if ([MFMailComposeViewController canSendMail]) {
@@ -172,8 +169,7 @@ RCT_EXPORT_METHOD(shareToMailWithInfo :(NSDictionary *)info callback:(RCTRespons
     
     [controller dismissViewControllerAnimated:YES completion:nil];
     
-    switch (result)
-    {
+    switch (result) {
         case MFMailComposeResultCancelled:
             NSLog(@"Result: 取消");
             self.callback(@[@{@"title" : @"邮箱分享失败", @"res" : @{@"message": @"用户取消发送"}}]);
@@ -200,14 +196,13 @@ RCT_EXPORT_METHOD(shareToMailWithInfo :(NSDictionary *)info callback:(RCTRespons
 #pragma mark-分享-
 
 //  分享微博
-RCT_EXPORT_METHOD(shareToWeiboWithInfo:(NSDictionary *)info logo:(NSString *)logo type:(NSString *)type appKey:(NSString *)appKey callback:(RCTResponseSenderBlock)callback){
-    self.isShare = YES;
+RCT_EXPORT_METHOD(shareToWeiboWithInfo:(NSDictionary *)info logo:(NSString *)logo type:(NSString *)type appKey:(NSString *)appKey callback:(RCTResponseSenderBlock)callback) {
     
     logo = [logo stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     
     NSMutableDictionary *dic=[[NSMutableDictionary alloc] initWithDictionary:info];
     
-    UIImage *img;
+    UIImage *img = NULL;
     // 网络图片
     if ([logo hasPrefix: @"http://"] || [logo hasPrefix: @"https://"]) {
         img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:logo]]];
@@ -242,11 +237,10 @@ RCT_EXPORT_METHOD(shareToWeiboWithInfo:(NSDictionary *)info logo:(NSString *)log
 }
 //  分享QQ
 RCT_EXPORT_METHOD(shareToQQWithLogo:(NSString *)logo type:(NSString *)type callback:(RCTResponseSenderBlock)callback){
-    self.isShare = YES;
     
     logo = [logo stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     
-    UIImage *img;
+    UIImage *img = NULL;
     // 网络图片
     if ([logo hasPrefix: @"http://"] || [logo hasPrefix: @"https://"]) {
         img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:logo]]];
@@ -254,18 +248,17 @@ RCT_EXPORT_METHOD(shareToQQWithLogo:(NSString *)logo type:(NSString *)type callb
         img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfFile:logo]];
     }
     
+    NSMutableDictionary *dic = [[NSMutableDictionary alloc] init];
     
     // 压缩缩略图
-    NSDictionary *previewimagedata = @{@"previewimagedata":[self thumbDataWithImg: img]};
-    
-    NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:previewimagedata];
+    dic[@"previewimagedata"] = [self thumbDataWithImg: img];
     
     // 分享图片
     if ([type integerValue] == 1) {
         dic[@"file_data"] = UIImageJPEGRepresentation(img, 1);
     }
     
-    NSData *data=[NSKeyedArchiver archivedDataWithRootObject:dic];
+    NSData *data = [NSKeyedArchiver archivedDataWithRootObject:dic];
     [[UIPasteboard generalPasteboard] setData:data forPasteboardType:@"com.tencent.mqq.api.apiLargeData"];
     
     callback(@[@{@"thirdAppDisplayName" : [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"]}]);
@@ -273,13 +266,12 @@ RCT_EXPORT_METHOD(shareToQQWithLogo:(NSString *)logo type:(NSString *)type callb
 
 //  分享微信
 RCT_EXPORT_METHOD(shareToWeixinWithInfo:(NSDictionary *)info appid:(NSString *)appid logo:(NSString *)logo type:(NSString *)type callback:(RCTResponseSenderBlock)callback) {
-    self.isShare = YES;
     
     logo = [logo stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     
-    NSMutableDictionary *dic=[[NSMutableDictionary alloc] initWithDictionary:info];
+    NSMutableDictionary *dic = [[NSMutableDictionary alloc] initWithDictionary:info];
     
-    UIImage *img;
+    UIImage *img = NULL;
     if ([logo hasPrefix: @"http://"] || [logo hasPrefix: @"https://"]) {  // 网络图片
         img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:logo]]];
     } else { // 本地图片
@@ -294,7 +286,7 @@ RCT_EXPORT_METHOD(shareToWeixinWithInfo:(NSDictionary *)info appid:(NSString *)a
     // 压缩缩略图
     dic[@"thumbData"] = [self thumbDataWithImg: img];
     
-    NSData *output=[NSPropertyListSerialization dataWithPropertyList:@{appid:dic} format:NSPropertyListBinaryFormat_v1_0 options:0 error:nil];
+    NSData *output = [NSPropertyListSerialization dataWithPropertyList:@{appid:dic} format:NSPropertyListBinaryFormat_v1_0 options:0 error:nil];
     [[UIPasteboard generalPasteboard] setData:output forPasteboardType:@"content"];
     
     callback(@[]);
@@ -302,13 +294,12 @@ RCT_EXPORT_METHOD(shareToWeixinWithInfo:(NSDictionary *)info appid:(NSString *)a
 
 // 分享微信小程序
 RCT_EXPORT_METHOD(shareToWeixinMiniWithInfo:(NSDictionary *)info appid:(NSString *)appid logo:(NSString *)logo callback:(RCTResponseSenderBlock)callback) {
-    self.isShare = YES;
     
     logo = [logo stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     
     NSMutableDictionary *dic=[[NSMutableDictionary alloc] initWithDictionary:info];
     
-    UIImage *img;
+    UIImage *img = NULL;
     if ([logo hasPrefix: @"http://"] || [logo hasPrefix: @"https://"]) {  // 网络图片
         img = [[UIImage alloc] initWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:logo]]];
     } else { // 本地图片
@@ -318,7 +309,7 @@ RCT_EXPORT_METHOD(shareToWeixinMiniWithInfo:(NSDictionary *)info appid:(NSString
     // 压缩缩略图
     dic[@"thumbData"] = [self thumbDataWithImg: img];
     
-    NSData *output=[NSPropertyListSerialization dataWithPropertyList:@{appid:dic} format:NSPropertyListBinaryFormat_v1_0 options:0 error:nil];
+    NSData *output = [NSPropertyListSerialization dataWithPropertyList:@{appid:dic} format:NSPropertyListBinaryFormat_v1_0 options:0 error:nil];
     [[UIPasteboard generalPasteboard] setData:output forPasteboardType:@"content"];
     
     callback(@[]);
@@ -392,7 +383,7 @@ RCT_EXPORT_METHOD(weiboLoginAppKey:(NSString *)appKey callBack:(RCTResponseSende
 
 #pragma mark-回调处理-
 
-- (void)handleOpenURL:(NSNotification *)aNotificatio {
+- (void)handleOpenURL:(NSNotification *)aNotification {
     // 将剪切板内容copy，防止剪切板被清空
     self.pasteboardContent = [[UIPasteboard generalPasteboard] dataForPasteboardType:@"content"];
 }
@@ -409,45 +400,45 @@ RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID 
         result = [self QQShare_handleOpenURL:url];
     } else if([url.scheme hasPrefix:@"tencent"]) {
         result = [self QQAuth_handleOpenURL:url andAppID:appID];
-        
     } else {
         
     }
     
-    self.isShare = NO;
     callback(@[result]);
 }
 
 //  微信回调处理
--(NSDictionary *)Weixin_handleOpenURL:(NSURL *)url andAppID:(NSString *)appID {
-    NSDictionary *retDic=[NSPropertyListSerialization propertyListWithData:self.pasteboardContent?:[[NSData alloc] init] options:0 format:0 error:nil][appID];
+- (NSDictionary *)Weixin_handleOpenURL:(NSURL *)url andAppID:(NSString *)appID {
     
-    NSString *type = self.isShare ? @"share" : @"login";
+    NSDictionary *retDic = [NSPropertyListSerialization propertyListWithData:self.pasteboardContent ? self.pasteboardContent : [[NSData alloc] init] options:0 format:0 error:nil][appID];
     
-    if ([url.absoluteString rangeOfString:@"://oauth"].location != NSNotFound) {
-        // 登录成功
-        return @{@"result" : @YES, @"type": type, @"title" : @"微信登录成功"};
-    } else {
-        if (retDic[@"state"] && [retDic[@"state"] isEqualToString:@"Weixinauth"] && [retDic[@"result"] intValue] != 0) {
+    // 登录
+    if (retDic[@"state"] && [retDic[@"state"] isEqualToString:@"Weixinauth"]) {
+        if ([retDic[@"result"] intValue] == 0) {
+            // 登录成功
+            return @{@"result" : @YES, @"type": @"login", @"title" : @"微信登录成功"};
+        } else {
             // 登录失败
-            return @{@"result" : @NO, @"type": type, @"title" : @"微信登录失败"};
-        }else if([retDic[@"result"] intValue] == 0){
+            return @{@"result" : @NO, @"type": @"login", @"title" : @"微信登录失败"};
+        }
+    } else {
+        if([retDic[@"result"] intValue] == 0) {
             // 分享成功
-            return @{@"result" : @YES, @"type": type, @"title" : @"微信分享成功"};
-        }else{
+            return @{@"result" : @YES, @"type": @"share", @"title" : @"微信分享成功"};
+        } else {
             // 分享失败
-            return @{@"result" : @NO, @"type": type, @"title" : @"微信分享失败"};
+            return @{@"result" : @NO, @"type": @"share", @"title" : @"微信分享失败"};
         }
     }
 }
 
 //  微博回调处理
--(NSDictionary *)Weibo_handleOpenURL:(NSURL *)url {
+- (NSDictionary *)Weibo_handleOpenURL:(NSURL *)url {
     NSArray *items = [UIPasteboard generalPasteboard].items;
     NSMutableDictionary *ret = [NSMutableDictionary dictionaryWithCapacity:items.count];
     for (NSDictionary *item in items) {
         for (NSString *k in item) {
-            ret[k]=[k isEqualToString:@"sdkVersion"]?item[k]:[NSKeyedUnarchiver unarchiveObjectWithData:item[k]];
+            ret[k] = [k isEqualToString:@"sdkVersion"]?item[k]:[NSKeyedUnarchiver unarchiveObjectWithData:item[k]];
         }
     }
     NSDictionary *transferObject = ret[@"transferObject"];
@@ -499,9 +490,8 @@ RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID 
     NSMutableDictionary *queryStringDictionary = [[NSMutableDictionary alloc] init];
     NSArray *urlComponents = [[url query] componentsSeparatedByString:@"&"];
     
-    for (NSString *keyValuePair in urlComponents)
-    {
-        NSRange range=[keyValuePair rangeOfString:@"="];
+    for (NSString *keyValuePair in urlComponents) {
+        NSRange range = [keyValuePair rangeOfString:@"="];
         [queryStringDictionary setObject:range.length>0?[keyValuePair substringFromIndex:range.location+1]:@"" forKey:(range.length?[keyValuePair substringToIndex:range.location]:keyValuePair)];
     }
     return queryStringDictionary;
