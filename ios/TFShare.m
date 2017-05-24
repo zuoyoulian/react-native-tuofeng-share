@@ -27,7 +27,6 @@ RCT_EXPORT_MODULE();
     self = [super init];
     if (self) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleOpenURL:) name:@"RCTOpenURLNotification" object:nil];
-        //        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(endBackground:) name:UIApplicationWillEnterForegroundNotification object:nil];
     }
     return self;
 }
