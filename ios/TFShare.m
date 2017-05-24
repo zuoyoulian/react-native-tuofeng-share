@@ -26,7 +26,7 @@ RCT_EXPORT_MODULE();
 {
     self = [super init];
     if (self) {
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleOpenURL:) name:@"RCTOpenURLNotification" object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(endBackground:) name:UIApplicationWillEnterForegroundNotification object:nil];
     }
     return self;
 }
@@ -382,7 +382,7 @@ RCT_EXPORT_METHOD(weiboLoginAppKey:(NSString *)appKey callBack:(RCTResponseSende
 
 #pragma mark-回调处理-
 
-- (void)handleOpenURL:(NSNotification *)aNotification {
+- (void)endBackground:(NSNotification *)aNotification {
     // 将剪切板内容copy，防止剪切板被清空
     self.pasteboardContent = [[UIPasteboard generalPasteboard] dataForPasteboardType:@"content"];
 }
@@ -409,8 +409,11 @@ RCT_EXPORT_METHOD(handleOpenURL:(NSString *)returnedURL appID:(NSString *)appID 
 //  微信回调处理
 - (NSDictionary *)Weixin_handleOpenURL:(NSURL *)url andAppID:(NSString *)appID {
     
-    NSDictionary *retDic = [NSPropertyListSerialization propertyListWithData:self.pasteboardContent ? self.pasteboardContent : [[NSData alloc] init] options:0 format:0 error:nil][appID];
+    NSDictionary *retDic = [NSPropertyListSerialization propertyListWithData:self.pasteboardContent?:[[NSData alloc] init] options:0 format:0 error:nil][appID];
     
+    if (!retDic) {
+        return @{};
+    }
     // 登录
     if (retDic[@"state"] && [retDic[@"state"] isEqualToString:@"Weixinauth"]) {
         if ([retDic[@"result"] intValue] == 0) {
