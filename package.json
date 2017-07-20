@@ -1,6 +1,6 @@
 {
   "name": "react-native-tuofeng-share",
-  "version": "0.2.7",
+  "version": "0.2.6",
   "private": true,
   "description": "实现了微信授权登录、QQ授权登录、微博授权登录，以及微信分享、QQ分享、微博分享、邮件分享和短信分享",
   "scripts": {
