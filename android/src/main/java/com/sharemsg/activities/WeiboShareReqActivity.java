@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.sharemsg.ShareMsgModule;
 import com.sharemsg.utils.BitmapChange;
@@ -64,12 +63,12 @@ public class WeiboShareReqActivity extends Activity implements IWeiboHandler.Res
 
     public void sendMultiMessage(String text,String title,String desc,String image,String url) {
         WeiboMultiMessage weiboMessage = new WeiboMultiMessage();//初始化微博的分享消息
-        weiboMessage.mediaObject = getWebpageObj(title,desc,url,image,this);
+        WebpageObject media = getWebpageObj(title, desc, url, image, this);
+        if (media != null) weiboMessage.mediaObject = media;
         weiboMessage.textObject = getTextObj(text);
         SendMultiMessageToWeiboRequest request = new SendMultiMessageToWeiboRequest();
         request.transaction = String.valueOf(System.currentTimeMillis());
         request.multiMessage = weiboMessage;
-
         ShareMsgModule.weibapi.sendRequest(this,request); //发送请求消息到微博，唤起微博分享界面
     }
 
@@ -115,7 +114,9 @@ public class WeiboShareReqActivity extends Activity implements IWeiboHandler.Res
         mediaObject.description = des;
         // 设置 Bitmap 类型的图片到视频对象里
         //img = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ic_launcher);
-        Bitmap thumb =Bitmap.createScaledBitmap(BitmapChange.getBC().GetLocalOrNetBitmap(img), 120, 120, true);//压缩Bitmap
+        Bitmap image = BitmapChange.getBC().GetLocalOrNetBitmap(img);
+        if (image == null) return null;
+        Bitmap thumb =Bitmap.createScaledBitmap(image, 120, 120, true);//压缩Bitmap
         mediaObject.setThumbImage(thumb);
 
         mediaObject.actionUrl = url;
